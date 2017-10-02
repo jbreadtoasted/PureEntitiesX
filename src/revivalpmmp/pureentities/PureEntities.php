@@ -250,7 +250,7 @@ class PureEntities extends PluginBase implements CommandExecutor {
      * @param bool $baby
      * @param Entity|null $parentEntity
      * @param Player|null $owner
-     * @return null|Entity
+     * @return Entity|null
      */
     public function scheduleCreatureSpawn(Position $pos, int $entityid, Level $level, string $type, bool $baby = false, Entity $parentEntity = null, Player $owner = null) {
         $this->getServer()->getPluginManager()->callEvent($event = new CreatureSpawnEvent($this, $pos, $entityid, $level, $type));
@@ -287,9 +287,9 @@ class PureEntities extends PluginBase implements CommandExecutor {
 
     /**
      * Logs an output to the plugin's logfile ...
-     * @param string $logline the output to be appended
-     * @param string $type the type of output to log
-     * @return bool returns false on failure
+     * @param string $logline  the output to be appended
+     * @param string $type     the type of output to log
+     * @return bool            returns false on failure
      */
     public static function logOutput(string $logline, string $type = self::DEBUG) {
         if (self::$loggingEnabled) {
@@ -320,10 +320,10 @@ class PureEntities extends PluginBase implements CommandExecutor {
      * When the given coordinates are NOT an AIR block coordinate we search upwards until the first air block is found
      * which is then returned to the caller.
      *
-     * @param $x                int the x position to start search
-     * @param $y                int the y position to start search
-     * @param $z                int the z position to start searching
-     * @param Level $level Level the level object to search in
+     * @param int $x            the x position to start search
+     * @param int $y            the y position to start search
+     * @param int $z            the z position to start searching
+     * @param Level $level      the level object to search in
      * @return null|Position    either NULL if no valid position was found or the final AIR spawn position
      */
     public static function getSuitableHeightPosition($x, $y, $z, Level $level) {

@@ -22,7 +22,6 @@ namespace revivalpmmp\pureentities\task;
 use pocketmine\level\Position;
 use pocketmine\scheduler\PluginTask;
 use revivalpmmp\pureentities\PureEntities;
-use revivalpmmp\pureentities\PluginConfiguration;
 use revivalpmmp\pureentities\task\spawners\animal\ChickenSpawner;
 use revivalpmmp\pureentities\task\spawners\animal\CowSpawner;
 use revivalpmmp\pureentities\task\spawners\monster\BlazeSpawner;
@@ -50,13 +49,10 @@ class AutoSpawnTask extends PluginTask {
 
     /** @var array $spawnerClasses */
     private $spawnerClasses = [];
-    /** @var array $spawnerWorlds */
-    private $spawnerWorlds = [];
 
     public function __construct(PureEntities $plugin) {
         parent::__construct($plugin);
         $this->plugin = $plugin;
-        $this->spawnerWorlds = PluginConfiguration::getInstance()->getEnabledWorlds();
         $this->prepareSpawnerClasses();
     }
 
@@ -64,9 +60,6 @@ class AutoSpawnTask extends PluginTask {
         PureEntities::logOutput("AutoSpawnTask: onRun ($currentTick)", PureEntities::DEBUG);
 
         foreach ($this->plugin->getServer()->getLevels() as $level) {
-            if (count($this->spawnerWorlds) > 0 and !in_array($level->getName(), $this->spawnerWorlds)){
-                continue;
-            }
             if (count($level->getPlayers()) > 0) {
                 foreach ($level->getPlayers() as $player) {
                     foreach ($this->spawnerClasses as $spawnerClass) {

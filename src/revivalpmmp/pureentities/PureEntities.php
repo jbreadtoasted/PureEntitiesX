@@ -260,7 +260,7 @@ class PureEntities extends PluginBase implements CommandExecutor {
             $entity = self::create($entityid, $pos);
             if ($entity !== null) {
                 if ($entity instanceof IntfCanBreed and $baby and $entity->getBreedingComponent() !== false) {
-                    $entity->getBreedingComponent()->setAge(-6000); // in 5 minutes it will be a an adult (atm only sheeps)
+                    $entity->getBreedingComponent()->setAge(-6000); // in 5 minutes it will be a an adult (atm only sheep)
                     if ($parentEntity != null) {
                         $entity->getBreedingComponent()->setParent($parentEntity);
                     }

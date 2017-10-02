@@ -132,6 +132,7 @@ class Wolf extends WalkingMonster implements IntfTameable, IntfCanBreed, IntfCan
         $this->loadFromNBT();
 
         $this->setAngry($this->isAngry() ? $this->angryValue : 0, true);
+        $this->setSitting($this->isSitting());
         $this->setTamed($this->isTamed());
         if ($this->isTamed()) {
             $this->mapOwner();
@@ -372,10 +373,6 @@ class Wolf extends WalkingMonster implements IntfTameable, IntfCanBreed, IntfCan
      * @return bool
      */
     public function tame(Player $player): bool {
-        // This shouldn't be necessary but just in case...
-        if ($this->isTamed()) {
-            return null;
-        }
         $tameSuccess = mt_rand(0, 2) === 0; // 1/3 chance of taming succeeds
         $itemInHand = $player->getInventory()->getItemInHand();
         if ($itemInHand != null) {
@@ -413,7 +410,6 @@ class Wolf extends WalkingMonster implements IntfTameable, IntfCanBreed, IntfCan
         } else {
             $this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_TAMED, false); // set not tamed
         }
-        $this->tamed = $tamed;
     }
 
     /**
@@ -459,23 +455,9 @@ class Wolf extends WalkingMonster implements IntfTameable, IntfCanBreed, IntfCan
      * Set the wolf sitting or not
      * @param bool $sit
      */
-    public function setSitting(bool $sit=null) {
-        PureEntities::logOutput("$this: setSitting called", PureEntities::DEBUG);
-
-        if (!($sit === null)) {
-            $this->sitting = $sit;
-            $this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_SITTING, $sit);
-        }
-
-        elseif ($this->sitting) {
-            $this->sitting = false;
-            $this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_SITTING, false);
-        }
-        else {
-            $this->sitting = true;
-            $this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_SITTING, true);
-        }
-
+    public function setSitting(bool $sit = true) {
+        $this->sitting = $sit;
+        $this->setDataFlag(self::DATA_FLAGS, self::DATA_FLAG_SITTING, $sit);
     }
 
     /**

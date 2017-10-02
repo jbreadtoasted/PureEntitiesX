@@ -110,7 +110,6 @@ class Spawner extends Spawnable {
                         $isValid = true;
                     }
                     $list[] = $entity;
-                    break;
                 }
             }
 

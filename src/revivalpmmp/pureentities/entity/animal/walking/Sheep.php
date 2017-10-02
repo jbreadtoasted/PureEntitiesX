@@ -172,8 +172,8 @@ class Sheep extends WalkingAnimal implements IntfCanBreed, IntfCanInteract, Intf
             if ($this->isSheared()) {
                 $currentBlock = $this->getCurrentBlock();
                 if ($currentBlock !== null and
-                    ($currentBlock instanceof Grass or $currentBlock instanceof TallGrass or strcmp($currentBlock->getName(), "Double Tallgrass") == 0)
-                ) { // only grass blocks are eatable by sheeps)
+                    ($currentBlock instanceof Grass or $currentBlock instanceof TallGrass or strcmp($currentBlock->getName(), "Double Tall Grass") == 0)
+                ) { // only grass blocks are eatable by sheep)
                     $this->blockOfInterestReached($currentBlock);
                 }
             }

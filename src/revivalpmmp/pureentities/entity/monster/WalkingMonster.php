@@ -86,8 +86,8 @@ abstract class WalkingMonster extends WalkingEntity implements Monster {
                     }
                 }
             }
+            parent::checkTarget(false);
         }
-		return parent::checkTarget($checkSkip);
     }
 
     public function getDamage(int $difficulty = null): float {

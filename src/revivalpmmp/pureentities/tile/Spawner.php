@@ -95,7 +95,7 @@ class Spawner extends Spawnable {
     }
 
     public function onUpdate(): bool {
-        if ($this->closed) {
+        if ($this->isClosed()) {
             return false;
         }
 
@@ -110,6 +110,7 @@ class Spawner extends Spawnable {
                         $isValid = true;
                     }
                     $list[] = $entity;
+                    break;
                 }
             }
 

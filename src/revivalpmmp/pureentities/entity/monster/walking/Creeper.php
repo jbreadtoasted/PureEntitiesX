@@ -18,6 +18,7 @@
 
 namespace revivalpmmp\pureentities\entity\monster\walking;
 
+use pocketmine\event\entity\ExplosionPrimeEvent;
 use revivalpmmp\pureentities\entity\monster\WalkingMonster;
 use pocketmine\entity\Creature;
 use pocketmine\entity\Entity;
@@ -26,7 +27,6 @@ use pocketmine\level\Explosion;
 use pocketmine\nbt\tag\IntTag;
 use pocketmine\item\Item;
 use revivalpmmp\pureentities\data\Data;
-use revivalpmmp\pureentities\event\ExplosionPrimeEvent;
 use revivalpmmp\pureentities\PluginConfiguration;
 use revivalpmmp\pureentities\PureEntities;
 
@@ -34,8 +34,7 @@ class Creeper extends WalkingMonster implements Explosive {
     const NETWORK_ID = Data::CREEPER;
     const DATA_POWERED = 19;
 
-    public $width = 0.6;
-    public $length = 0.6;
+    public $width = 0.7;
     public $height = 1.7;
     public $speed = 0.9;
 
@@ -128,11 +127,10 @@ class Creeper extends WalkingMonster implements Explosive {
                 if ($this->bombTime < 0) {
                     $this->bombTime = 0;
                 }
-
-                $this->motionX = $this->getSpeed() * 0.15 * ($x / $diff);
-                $this->motionZ = $this->getSpeed() * 0.15 * ($z / $diff);
             }
             if ($diff > 0) {
+                $this->motionX = $this->getSpeed() * 0.15 * ($x / $diff);
+                $this->motionZ = $this->getSpeed() * 0.15 * ($z / $diff);
                 $this->yaw = rad2deg(-atan2($x / $diff, $z / $diff));
             }
             $this->pitch = $y == 0 ? 0 : rad2deg(-atan2($y, sqrt($x * $x + $z * $z)));
@@ -153,7 +151,7 @@ class Creeper extends WalkingMonster implements Explosive {
         }
     }
 
-    public function getMaxHealth() : int{
+    public function getMaxHealth(): int {
         return 20;
     }
 

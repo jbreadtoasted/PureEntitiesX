@@ -41,8 +41,7 @@ class Skeleton extends WalkingMonster implements ProjectileSource {
     const NETWORK_ID = Data::SKELETON;
 
     public $height = 2;
-    public $width = 0.781;
-    public $length = 0.875;
+    public $width = 0.875;
     public $speed = 1.0;
 
     public function getSpeed(): float {
@@ -59,7 +58,7 @@ class Skeleton extends WalkingMonster implements ProjectileSource {
      * @param Entity $player
      */
     public function attackEntity(Entity $player) {
-        if ($this->attackDelay > 30 && $this->distanceSquared($player) <= 55) {
+        if ($this->attackDelay > 30 && mt_rand(1, 32) < 4 && $this->distanceSquared($player) <= 55) {
             $this->attackDelay = 0;
 
             $f = 1.2;
@@ -117,11 +116,12 @@ class Skeleton extends WalkingMonster implements ProjectileSource {
     }
 
     public function entityBaseTick(int $tickDiff = 1): bool {
+        if ($this->isClosed() or $this->getLevel() == null) return false;
         Timings::$timerEntityBaseTick->startTiming();
 
         $hasUpdate = parent::entityBaseTick($tickDiff);
 
-        $time = $this->getLevel()->getTime() % Level::TIME_FULL;
+        $time = $this->getLevel() ? $this->getLevel()->getTime() % Level::TIME_FULL : Level::TIME_NIGHT;
         if (
             !$this->isOnFire()
             && ($time < Level::TIME_NIGHT || $time > Level::TIME_SUNRISE)
@@ -142,7 +142,7 @@ class Skeleton extends WalkingMonster implements ProjectileSource {
         return $drops;
     }
 
-    public function getMaxHealth() : int{
+    public function getMaxHealth(): int {
         return 20;
     }
 

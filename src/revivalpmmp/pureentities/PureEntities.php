@@ -101,6 +101,7 @@ class PureEntities extends PluginBase implements CommandExecutor {
     const BUTTON_TEXT_MILK = "Milk";
     const BUTTON_TEXT_TAME = "Tame";
     const BUTTON_TEXT_SIT = "Sit";
+    const BUTTON_TEXT_STAND = "Stand";
     const BUTTON_TEXT_DYE = "Dye";
 
     private static $registeredClasses = [];
@@ -178,7 +179,7 @@ class PureEntities extends PluginBase implements CommandExecutor {
 
         $this->saveDefaultConfig();
 
-        $this->getServer()->getLogger()->info(TextFormat::GOLD . "[PureEntitiesX] The Original Code for this Plugin was Written by milk0417. It is now being maintained by RevivalPMMP for PMMP 'Unleashed'.");
+        $this->getServer()->getLogger()->info(TextFormat::GOLD . "[PureEntitiesX] The Original Code for this Plugin was Written by milk0417. It is now being maintained by RevivalPMMP for PMMP 'REDACTED'.");
 
         Color::init();
 
@@ -211,7 +212,9 @@ class PureEntities extends PluginBase implements CommandExecutor {
     }
 
     public function onDisable() {
-    	self::$logger->quit();
+        if (static::$loggingEnabled) {
+            self::$logger->quit();
+        }
         $this->getServer()->getLogger()->notice("[PureEntitiesX] Disabled!");
     }
 
@@ -223,7 +226,7 @@ class PureEntities extends PluginBase implements CommandExecutor {
      * @return Entity
      */
     public static function create($type, Position $source, ...$args) {
-        $nbt = new CompoundTag("", [
+        $nbt = new CompoundTag($type ?? "Unknown", [
             "Pos" => new ListTag("Pos", [
                 new DoubleTag("", $source->x),
                 new DoubleTag("", $source->y),
@@ -287,9 +290,9 @@ class PureEntities extends PluginBase implements CommandExecutor {
 
     /**
      * Logs an output to the plugin's logfile ...
-     * @param string $logline  the output to be appended
-     * @param string $type     the type of output to log
-     * @return bool            returns false on failure
+     * @param string $logline the output to be appended
+     * @param string $type the type of output to log
+     * @return bool returns false on failure
      */
     public static function logOutput(string $logline, string $type = self::DEBUG) {
         if (self::$loggingEnabled) {
@@ -320,13 +323,13 @@ class PureEntities extends PluginBase implements CommandExecutor {
      * When the given coordinates are NOT an AIR block coordinate we search upwards until the first air block is found
      * which is then returned to the caller.
      *
-     * @param int $x            the x position to start search
-     * @param int $y            the y position to start search
-     * @param int $z            the z position to start searching
-     * @param Level $level      the level object to search in
-     * @return null|Position    either NULL if no valid position was found or the final AIR spawn position
+     * @param int $x the x position to start search
+     * @param int $y the y position to start search
+     * @param int $z the z position to start searching
+     * @param Level $level the level object to search in
+     * @return Position|null either NULL if no valid position was found or the final AIR spawn position
      */
-    public static function getSuitableHeightPosition($x, $y, $z, Level $level) {
+    public static function getSuitableHeightPosition($x, $y, $z, Level $level): ?Position {
         $newPosition = null;
         $id = $level->getBlockIdAt($x, $y, $z);
         if ($id == 0) { // we found an air block - we need to search down step by step to get the correct block which is not a "AIR" block
@@ -381,6 +384,7 @@ class PureEntities extends PluginBase implements CommandExecutor {
                 foreach (Server::getInstance()->getLevels() as $level) {
                     foreach ($level->getEntities() as $entity) {
                         if (!$entity instanceof Player) {
+                            $entitiesRemoved[] = clone($entity);
                             $entity->close();
                             $entitiesRemoved[] = $entity;
                             if ($entity instanceof BaseEntity) {
@@ -397,10 +401,11 @@ class PureEntities extends PluginBase implements CommandExecutor {
                     $name = $entity instanceof \pocketmine\entity\Item ? $entity->getItem()->getName() : $entity->getName();
                     self::logOutput("PeRemove: $name (id:" . $entity->getId() . ")", self::NORM);
                 }
+                unset($entitiesRemoved);
                 $commandSuccessful = true;
                 break;
             case "pesummon":
-                if (count($args) >= 1 or count($args) <= 3) {
+                if (($sender instanceof Player and count($args) >= 1 and count($args) <= 3) or (!$sender instanceof Player and count($args) > 1)) {
                     $playerName = count($args) == 1 ? $sender->getName() : $args[1];
                     $isBaby = false;
                     if (count($args) == 3) {

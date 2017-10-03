@@ -36,7 +36,6 @@ class Ghast extends FlyingMonster implements ProjectileSource {
     const NETWORK_ID = Data::GHAST;
 
     public $width = 4.5;
-    public $length = 4.5;
     public $height = 4.5;
     public $speed = 1.2;
 
@@ -56,7 +55,7 @@ class Ghast extends FlyingMonster implements ProjectileSource {
     }
 
     public function targetOption(Creature $creature, float $distance): bool {
-        return (!($creature instanceof Player) || ($creature->isSurvival() && $creature->spawned)) && $creature->isAlive() && !$creature->closed && $distance <= 10000;
+        return (!($creature instanceof Player) || ($creature->isSurvival() && $creature->spawned)) && $creature->isAlive() && !$creature->isClosed() && $distance <= 10000;
     }
 
     /**
@@ -65,7 +64,7 @@ class Ghast extends FlyingMonster implements ProjectileSource {
      * @param Entity $player
      */
     public function attackEntity(Entity $player) {
-        if ($this->attackDelay > 30 && $this->distance($player) <= 100) {
+        if ($this->attackDelay > 30 && mt_rand(1, 32) < 4 && $this->distance($player) <= 100) {
             $this->attackDelay = 0;
 
             $f = 2;
@@ -109,7 +108,7 @@ class Ghast extends FlyingMonster implements ProjectileSource {
         }
     }
 
-    public function getMaxHealth() : int{
+    public function getMaxHealth(): int {
         return 10;
     }
 

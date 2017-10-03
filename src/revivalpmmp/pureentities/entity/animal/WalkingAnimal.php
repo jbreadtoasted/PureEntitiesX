@@ -19,6 +19,9 @@
 namespace revivalpmmp\pureentities\entity\animal;
 
 use pocketmine\entity\Creature;
+use pocketmine\item\Item;
+use pocketmine\Item\ItemIds;
+use revivalpmmp\pureentities\entity\animal\walking\Sheep;
 use revivalpmmp\pureentities\entity\BaseEntity;
 use revivalpmmp\pureentities\entity\WalkingEntity;
 use pocketmine\entity\Effect;
@@ -29,6 +32,8 @@ use pocketmine\math\Vector3;
 use pocketmine\Player;
 use revivalpmmp\pureentities\features\IntfCanBreed;
 use revivalpmmp\pureentities\features\IntfFeedable;
+use revivalpmmp\pureentities\features\IntfShearable;
+use revivalpmmp\pureentities\features\IntfTameable;
 use revivalpmmp\pureentities\InteractionHelper;
 use revivalpmmp\pureentities\PluginConfiguration;
 use revivalpmmp\pureentities\PureEntities;
@@ -43,11 +48,12 @@ abstract class WalkingAnimal extends WalkingEntity implements Animal {
     }
 
     public function entityBaseTick(int $tickDiff = 1): bool {
+        if ($this->isClosed() or $this->getLevel() == null) return false;
         Timings::$timerEntityBaseTick->startTiming();
 
         $hasUpdate = parent::entityBaseTick($tickDiff);
 
-        if (!$this->hasEffect(Effect::WATER_BREATHING) && $this->isInsideOfWater()) {
+        if ($this->getLevel() !== null && !$this->hasEffect(Effect::WATER_BREATHING) && $this->isInsideOfWater()) {
             $hasUpdate = true;
             $airTicks = $this->getDataProperty(self::DATA_AIR) - $tickDiff;
             if ($airTicks <= -20) {
@@ -81,6 +87,7 @@ abstract class WalkingAnimal extends WalkingEntity implements Animal {
      * @return bool
      */
     public function onUpdate(int $currentTick): bool {
+        if ($this->isClosed() or $this->getLevel() == null) return false;
         if (!$this->isAlive()) {
             if (++$this->deadTicks >= 23) {
                 $this->close();
@@ -97,9 +104,7 @@ abstract class WalkingAnimal extends WalkingEntity implements Animal {
         if ($target instanceof Player) {
             if ($this->distance($target) <= 2) {
                 $this->pitch = 22; // pitch is the angle for looking up or down while yaw is looking left/right
-                $this->x = $this->lastX;
-                $this->y = $this->lastY;
-                $this->z = $this->lastZ;
+                $this->setPosition(new Vector3($this->lastX, $this->lastY, $this->lastZ));
             }
         } elseif (
             $target instanceof Vector3
@@ -162,22 +167,27 @@ abstract class WalkingAnimal extends WalkingEntity implements Animal {
      */
     public function targetOption(Creature $creature, float $distance): bool {
         $targetOption = false;
-        if ($this instanceof IntfCanBreed || $this instanceof IntfFeedable) {
-            if ($creature != null and $creature instanceof Player) { // a player requests the target option
-                if ($creature->getInventory() != null) { // sometimes, we get null on getInventory?! F**k
-                    $feedableItems = $this->getFeedableItems();
-                    if (in_array($creature->getInventory()->getItemInHand()->getId(), $feedableItems)) {
-                        // check if the sheep is able to follow - but only on a distance of 6 blocks
-                        $targetOption = $creature->spawned && $creature->isAlive() && !$creature->closed && $distance <= PluginConfiguration::getInstance()->getMaxInteractDistance();
-                        // sheep only follow when <= 5 blocks away. otherwise, forget the player as target!
-                        if (!$targetOption and $this->isFollowingPlayer($creature) and !$this->getBreedingComponent()->isBaby()) {
-                            $this->setBaseTarget($this->getBreedingComponent()->getBreedPartner()); // reset base target to breed partner (or NULL, if there's none)
-                        }
-                    } else {
-                        // reset base target when it was player before (follow by holding wheat)
-                        if ($this->isFollowingPlayer($creature)) { // we've to reset follow when there's nothing interesting in hand
-                            // reset base target!
-                            $this->setBaseTarget($this->getBreedingComponent()->getBreedPartner()); // reset base target to breed partner (or NULL, if there's none)
+        if ($creature instanceof Player) { // a player requests the target option
+            if ($creature != null and $creature->getInventory() != null) { // sometimes, we get null on getInventory?! F**k
+                $itemInHand = $creature->getInventory()->getItemInHand()->getId();
+                if ($this instanceof IntfTameable) {
+                    $tameFood = $this->getTameFoods();
+                    if (!$this->isTamed() and in_array($itemInHand, $tameFood) and $distance <= PluginConfiguration::getInstance()->getMaxInteractDistance()) {
+                        $targetOption = true;
+                    } else if ($this instanceof IntfCanBreed) {
+                        if ($this->isTamed() and $distance <= PluginConfiguration::getInstance()->getMaxInteractDistance()) { // tamed - it can breed!!!
+                            $feedableItems = $this->getFeedableItems();
+                            $hasFeedableItemsInHand = in_array($itemInHand, $feedableItems);
+                            if ($hasFeedableItemsInHand) {
+                                // check if the entity is able to follow - but only on a distance of 6 blocks
+                                $targetOption = $creature->spawned && $creature->isAlive() && !$creature->closed;
+                            } else {
+                                // reset base target when it was player before (follow by holding wheat)
+                                if ($this->isFollowingPlayer($creature)) { // we've to reset follow when there's nothing interesting in hand
+                                    // reset base target!
+                                    $this->setBaseTarget($this->getBreedingComponent()->getBreedPartner()); // reset base target to breed partner (or NULL, if there's none)
+                                }
+                            }
                         }
                     }
                 }
@@ -186,21 +196,63 @@ abstract class WalkingAnimal extends WalkingEntity implements Animal {
         return $targetOption;
     }
 
+
+    // TODO: Consider moving this to WalkingEntity to reduce code duplication.
     /**
      * The general showButton function is implemented here for entities that are walking animals
-     * and can interact with - we're working with interfaces here.
+     * and are interactive - we're working with interfaces here.
      *
      * @param Player $player
      */
     public function showButton(Player $player) {
-        if ($this instanceof IntfCanBreed || $this instanceof IntfFeedable) {
-            if (in_array($player->getInventory()->getItemInHand()->getId(), $this->getFeedableItems())) {
-                InteractionHelper::displayButtonText(PureEntities::BUTTON_TEXT_FEED, $player);
-            } else {
+        if ($player->getInventory() != null) { // sometimes, we get null on getInventory?!
+            $itemInHand = $player->getInventory()->getItemInHand()->getId();
+            // Redefining how to determine button circumstance.  There are several animals that are breedable
+            // without being tameable (ie. Sheep, Cows, Mooshroom, Pigs, Chicken)
+            PureEntities::logOutput("Player looking at $this");
+            PureEntities::logOutput("showButton: Item in Hand $itemInHand");
+            if ($this instanceof IntfShearable and $itemInHand === Item::SHEARS and !$this->isSheared()) {
+                InteractionHelper::displayButtonText(PureEntities::BUTTON_TEXT_SHEAR, $player);
+                PureEntities::logOutput("Button text set to Shear.");
+
+            } else if ($this instanceof IntfTameable) {
+                $feedableItems = $this->getFeedableItems();
+                $hasFeedableItemsInHand = in_array($itemInHand, $feedableItems);
+                $tameFood = $this->getTameFoods();
+                if (!$this->isTamed() and in_array($itemInHand, $tameFood)) {
+                    InteractionHelper::displayButtonText(PureEntities::BUTTON_TEXT_TAME, $player);
+                    PureEntities::logOutput("Button text set to Tame.");
+                } else if($this->isTamed() and $hasFeedableItemsInHand) {
+                    InteractionHelper::displayButtonText(PureEntities::BUTTON_TEXT_FEED, $player);
+                    PureEntities::logOutput("Button text set to Feed for tameable entity.");
+                } else if ($this->isTamed()) { // Offer sit or stand.
+                    if ($this->isSitting()) {
+                        InteractionHelper::displayButtonText(PureEntities::BUTTON_TEXT_STAND, $player);
+                        PureEntities::logOutput("Button text set to Stand.");
+                    } else {
+                        InteractionHelper::displayButtonText(PureEntities::BUTTON_TEXT_SIT, $player);
+                        PureEntities::logOutput("Button text set to Sit.");
+                    }
+                }
+
+            } else if ($this instanceof IntfCanBreed) {
+                $feedableItems = $this->getFeedableItems();
+                $hasFeedableItemsInHand = in_array($itemInHand, $feedableItems);
+                if ($hasFeedableItemsInHand) {
+                    InteractionHelper::displayButtonText(PureEntities::BUTTON_TEXT_FEED, $player);
+                    PureEntities::logOutput("Button text set to Feed.");
+                } else if ($this instanceof Sheep and $itemInHand == ItemIds::DYE and
+                    $player->getInventory()->getItemInHand()->getDamage() > 0
+                ) {
+                    InteractionHelper::displayButtonText(PureEntities::BUTTON_TEXT_DYE, $player);
+                    PureEntities::logOutput("Button text set to Dye for sheep.");
+                }
+            } else { // No button type interactions necessary.
+                $damage = $player->getInventory()->getItemInHand()->getDamage();
+                PureEntities::logOutput("Player looking at $this with item in hand $itemInHand.");
+                PureEntities::logOutput("Item in hand damage $damage.");
                 InteractionHelper::displayButtonText("", $player);
             }
-        } else {
-            InteractionHelper::displayButtonText("", $player);
         }
     }
 

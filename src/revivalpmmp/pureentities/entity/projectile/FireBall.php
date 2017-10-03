@@ -18,9 +18,9 @@
 
 namespace revivalpmmp\pureentities\entity\projectile;
 
+use pocketmine\event\entity\ExplosionPrimeEvent;
 use pocketmine\level\Level;
 use pocketmine\level\particle\CriticalParticle;
-use pocketmine\math\Vector3;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\protocol\AddEntityPacket;
 use pocketmine\Player;
@@ -28,7 +28,6 @@ use pocketmine\entity\Projectile;
 use pocketmine\entity\Entity;
 use pocketmine\level\Explosion;
 use revivalpmmp\pureentities\data\Data;
-use revivalpmmp\pureentities\event\ExplosionPrimeEvent;
 
 class FireBall extends Projectile {
     const NETWORK_ID = Data::FIRE_BALL;
@@ -59,7 +58,7 @@ class FireBall extends Projectile {
     }
 
     public function onUpdate(int $currentTick): bool {
-        if ($this->closed) {
+        if ($this->isClosed()) {
             return false;
         }
 
@@ -79,7 +78,7 @@ class FireBall extends Projectile {
         if ($this->age > 1200 or $this->isCollided) {
             if ($this->isCollided and $this->canExplode) {
                 $this->server->getPluginManager()->callEvent($ev = new ExplosionPrimeEvent($this, 2.8));
-                if (!$ev->isCancelled()) {
+                if (!$ev->isCancelled() && $this->getLevel() != null) {
                     $explosion = new Explosion($this, $ev->getForce(), $this->getOwningEntity());
                     if ($ev->isBlockBreaking()) {
                         $explosion->explodeA();
@@ -99,8 +98,8 @@ class FireBall extends Projectile {
         $pk = new AddEntityPacket();
         $pk->type = self::NETWORK_ID;
         $pk->entityRuntimeId = $this->getId();
-        $pk->position = new Vector3($this->x, $this->y, $this->z);
-        $pk->motion = new Vector3($this->motionX, $this->motionY, $this->motionZ);
+        $pk->position = $this->asVector3();
+        $pk->motion = $this->getMotion();
         $pk->metadata = $this->dataProperties;
         $player->dataPacket($pk);
 

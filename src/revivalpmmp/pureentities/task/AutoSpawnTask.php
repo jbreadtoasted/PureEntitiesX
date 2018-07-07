@@ -51,7 +51,16 @@ class AutoSpawnTask extends Task{
 	private $hostileMobs = 0;
 	private $passiveDryMobs = 0;
 	private $passiveWetMobs = 0;
-	private $mobCap = 60;
+
+	/** This number is only used at the beginning of the spawn cycle to determine
+	 * whether or not the task will attempt to spawn any mobs this cycle.  It does
+	 * not reflect the maximum number of mobs in a world at any given time and can
+	 * be significantly exceeded during a spawn cycle.  It is suggested that this
+	 * number be left at the default of 60 for most servers.
+	 *
+	 **/
+	private $totalMobCap = 60;
+	private $individualMobLimits = [];
 
 	public function __construct(PureEntities $plugin){
 		$this->plugin = $plugin;
@@ -62,6 +71,7 @@ class AutoSpawnTask extends Task{
 		PureEntities::logOutput("AutoSpawnTask: onRun ($currentTick)");
 		PeTimings::startTiming("AutoSpawnTask");
 
+		$mobTotals = [];
 		foreach($this->plugin->getServer()->getLevels() as $level){
 			if(count($this->spawnerWorlds) > 0 and !in_array($level->getName(), $this->spawnerWorlds)){
 				continue;
@@ -72,20 +82,27 @@ class AutoSpawnTask extends Task{
 
 			// For now, spawning as overworld only.
 			foreach($level->getEntities() as $entity){
-				if(in_array(array_search($entity::NETWORK_ID, Data::NETWORK_IDS), MobTypeMaps::OVERWORLD_HOSTILE_MOBS)){
-					$this->hostileMobs++;
-				}elseif(in_array(array_search($entity::NETWORK_ID, Data::NETWORK_IDS), MobTypeMaps::PASSIVE_DRY_MOBS)){
-					$this->passiveDryMobs++;
-				}elseif(in_array(array_search($entity::NETWORK_ID, Data::NETWORK_IDS), MobTypeMaps::PASSIVE_WET_MOBS)){
-					$this->passiveWetMobs++;
+				$entityName = array_search($entity::NETWORK_ID, Data::NETWORK_IDS);
+				if($entityName !== false){
+					if(in_array($entityName, MobTypeMaps::OVERWORLD_HOSTILE_MOBS)){
+						$this->hostileMobs++;
+					}elseif(in_array($entityName, MobTypeMaps::PASSIVE_DRY_MOBS)){
+						$this->passiveDryMobs++;
+					}elseif(in_array($entityName, MobTypeMaps::PASSIVE_WET_MOBS)){
+						$this->passiveWetMobs++;
+					}
+					if(in_array($entityName, $this->individualMobLimits)){
+						$mobTotals[$entity::NETWORK_ID]++;
+					}
 				}
+
 			}
 			PureEntities::logOutput("AutoSpawnTask: Hostiles = $this->hostileMobs");
 			PureEntities::logOutput("AutoSpawnTask: Passives(Dry) = $this->passiveDryMobs");
 			PureEntities::logOutput("AutoSpawnTask: Passives(Wet) = $this->passiveWetMobs");
 			$total = ($this->hostileMobs + $this->passiveWetMobs + $this->passiveDryMobs);
 
-			if($total >= $this->mobCap){
+			if($total >= $this->totalMobCap){
 				PureEntities::logOutput("AutoSpawnTask: Stopping AutoSpawn due to MobCap", PureEntities::NORM);
 				PureEntities::logOutput("AutoSpawnTask: Mob Total = $total");
 

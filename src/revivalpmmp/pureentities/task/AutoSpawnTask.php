@@ -145,7 +145,7 @@ class AutoSpawnTask extends Task{
 					foreach($spawnMap as $chunk){
 						// TODO Find source of null chunks
 						if($chunk != null){
-							if($this->spawnFriendlyMobsAllowed and mt_rand(0, 1) === 1){
+							if($this->spawnFriendlyMobsAllowed){
 								// TODO: Spawn water creatures.
 								$this->spawnPassiveMob($chunk, $level);
 							}else{

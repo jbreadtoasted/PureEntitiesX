@@ -1,5 +1,4 @@
 <?php
-
 /**
  * PureEntitiesX: Mob AI Plugin for PMMP
  * Copyright (C)  2018 RevivalPMMP
@@ -20,6 +19,9 @@
 
 namespace revivalpmmp\pureentities\entity\animal;
 
-interface Animal{
+
+use revivalpmmp\pureentities\entity\BaseEntity;
+
+abstract class AnimalX extends BaseEntity{
 
 }

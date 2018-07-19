@@ -20,9 +20,11 @@
 namespace revivalpmmp\pureentities\traits;
 
 
+use pocketmine\Player;
+
 trait Interactive{
 
-    public function showButton(){
+    public function showButton(Player $player){
 
     }
 }

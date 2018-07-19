@@ -21,6 +21,8 @@
 namespace revivalpmmp\pureentities\entity\animal\walking;
 
 use pocketmine\entity\Creature;
+use pocketmine\level\Level;
+use pocketmine\nbt\tag\CompoundTag;
 use revivalpmmp\pureentities\data\NBTConst;
 use revivalpmmp\pureentities\entity\animal\WalkingAnimal;
 use pocketmine\item\Item;
@@ -36,6 +38,7 @@ use revivalpmmp\pureentities\data\Data;
 use revivalpmmp\pureentities\traits\Breedable;
 use revivalpmmp\pureentities\traits\CanPanic;
 use revivalpmmp\pureentities\traits\Feedable;
+use revivalpmmp\pureentities\traits\Interactive;
 use revivalpmmp\pureentities\traits\Tameable;
 
 
@@ -45,7 +48,7 @@ use revivalpmmp\pureentities\traits\Tameable;
 
 
 class Ocelot extends WalkingAnimal implements IntfTameable, IntfCanBreed, IntfCanInteract, IntfCanPanic{
-	use Breedable, CanPanic, Feedable, Tameable;
+	use Breedable, CanPanic, Feedable, Interactive, Tameable;
 	const NETWORK_ID = Data::NETWORK_IDS["ocelot"];
 
 	private $comfortObjects = array(
@@ -76,42 +79,46 @@ class Ocelot extends WalkingAnimal implements IntfTameable, IntfCanBreed, IntfCa
 		return 0.8;
 	}
 
-	public function initEntity() : void{
-		parent::initEntity();
-		$this->width = Data::WIDTHS[self::NETWORK_ID];
-		$this->height = Data::HEIGHTS[self::NETWORK_ID];
-		$this->speed = 1.2;
-		$this->setNormalSpeed($this->speed);
-		$this->setPanicSpeed(1.4);
+    public function __construct(Level $level, CompoundTag $nbt){
+        $this->width = Data::WIDTHS[self::NETWORK_ID];
+        $this->height = Data::HEIGHTS[self::NETWORK_ID];
+        $this->speed = 1.2;
+        $this->setNormalSpeed($this->speed);
+        $this->setPanicSpeed(1.4);
 
-		$this->fireProof = false;
+        $this->fireProof = false;
 
-		$this->breedableClass = new BreedingComponent($this);
+        $this->breedableClass = new BreedingComponent($this);
 
-		$this->tameFoods = array(
+        $this->tameFoods = array(
 			Item::RAW_FISH,
 			Item::RAW_SALMON
 		);
 
-		$this->feedableItems = array(
+        $this->feedableItems = array(
 			Item::RAW_FISH,
 			Item::RAW_SALMON
 		);
 
-		if($this->isTamed()){
-			$this->mapOwner();
-			if($this->owner === null){
-				PureEntities::logOutput("Ocelot($this): is tamed but player not online. Cannot set tamed owner. Will be set when player logs in ..", PureEntities::NORM);
-			}
-		}
+        if($this->isTamed()){
+            $this->mapOwner();
+            if($this->owner === null){
+                PureEntities::logOutput("Ocelot($this): is tamed but player not online. Cannot set tamed owner. Will be set when player logs in ..", PureEntities::NORM);
+            }
+        }
 
-		$this->breedableClass->init();
+        $this->teleportDistance = PluginConfiguration::getInstance()->getTamedTeleportBlocks();
+        $this->followDistance = PluginConfiguration::getInstance()->getTamedPlayerMaxDistance();
+        parent::__construct($level, $nbt);
+    }
 
-		$this->teleportDistance = PluginConfiguration::getInstance()->getTamedTeleportBlocks();
-		$this->followDistance = PluginConfiguration::getInstance()->getTamedPlayerMaxDistance();
-	}
+    public function initEntity() : void{
+        parent::initEntity();
+        $this->breedableClass->init();
 
-	/**
+    }
+
+    /**
 	 * Returns the appropriate NetworkID associated with this entity
 	 * @return int
 	 */
@@ -274,8 +281,6 @@ class Ocelot extends WalkingAnimal implements IntfTameable, IntfCanBreed, IntfCa
 					}
 				}else if($this->getBaseTarget() === null or $this->getBaseTarget() === $this->getOwner()){
 					// no distance exceeded. if the target is the owner, set a random one instead.
-					$this->findRandomLocation();
-					PureEntities::logOutput("$this: set random walking location. Continue to idle.");
 				}
 			}
 		}

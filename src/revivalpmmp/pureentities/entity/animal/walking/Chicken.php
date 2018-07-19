@@ -20,21 +20,24 @@
 
 namespace revivalpmmp\pureentities\entity\animal\walking;
 
-use pocketmine\level\sound\PopSound;
-use revivalpmmp\pureentities\components\BreedingComponent;
-use revivalpmmp\pureentities\entity\animal\WalkingAnimal;
 use pocketmine\item\Item;
-use revivalpmmp\pureentities\features\IntfCanBreed;
+use pocketmine\level\Level;
+use pocketmine\level\sound\PopSound;
+use pocketmine\nbt\tag\CompoundTag;
+use revivalpmmp\pureentities\components\BreedingComponent;
 use revivalpmmp\pureentities\data\Data;
+use revivalpmmp\pureentities\entity\animal\WalkingAnimal;
+use revivalpmmp\pureentities\features\IntfCanBreed;
 use revivalpmmp\pureentities\features\IntfCanInteract;
 use revivalpmmp\pureentities\features\IntfCanPanic;
 use revivalpmmp\pureentities\PluginConfiguration;
 use revivalpmmp\pureentities\traits\Breedable;
 use revivalpmmp\pureentities\traits\CanPanic;
 use revivalpmmp\pureentities\traits\Feedable;
+use revivalpmmp\pureentities\traits\Interactive;
 
 class Chicken extends WalkingAnimal implements IntfCanBreed, IntfCanInteract, IntfCanPanic{
-	use Feedable, Breedable, CanPanic;
+	use Feedable, Breedable, CanPanic, Interactive;
 
 	const NETWORK_ID = Data::NETWORK_IDS["chicken"];
 
@@ -45,25 +48,28 @@ class Chicken extends WalkingAnimal implements IntfCanBreed, IntfCanInteract, In
 	private $dropEggTime = 0;
 
 
-	public function initEntity() : void{
-		parent::initEntity();
-		$this->setNetworkId(Data::NETWORK_IDS["chicken"]);
-		$this->width = Data::WIDTHS[$this->getNetworkId()];
-		$this->height = Data::HEIGHTS[$this->getNetworkId()];
-		$this->eyeHeight = 0.6;
-		$this->gravity = 0.08;
+    public function __construct(Level $level, CompoundTag $nbt){
+        $this->width = Data::WIDTHS[$this->getNetworkId()];
+        $this->height = Data::HEIGHTS[$this->getNetworkId()];
+        $this->eyeHeight = 0.6;
+        $this->gravity = 0.08;
 
-		$this->breedableClass = new BreedingComponent($this);
-		$this->breedableClass->init();
+        $this->breedableClass = new BreedingComponent($this);
 
-		$this->feedableItems = array(
+        $this->feedableItems = array(
 			Item::WHEAT_SEEDS,
 			Item::PUMPKIN_SEEDS,
 			Item::MELON_SEEDS,
 			Item::BEETROOT_SEEDS);
-	}
+        parent::__construct($level, $nbt);
+    }
 
-	public function saveNBT() : void{
+    public function initEntity() : void{
+        parent::initEntity();
+        $this->breedableClass->init();
+    }
+
+    public function saveNBT() : void{
 		if(PluginConfiguration::getInstance()->getEnableNBT()){
 			parent::saveNBT();
 			$this->breedableClass->saveNBT();

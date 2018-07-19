@@ -20,6 +20,8 @@
 
 namespace revivalpmmp\pureentities\entity\animal\flying;
 
+use pocketmine\level\Level;
+use pocketmine\nbt\tag\CompoundTag;
 use revivalpmmp\pureentities\data\Data;
 use revivalpmmp\pureentities\entity\animal\FlyingAnimal;
 use pocketmine\entity\Creature;
@@ -28,11 +30,11 @@ class Bat extends FlyingAnimal{
 	//TODO implement
 	const NETWORK_ID = Data::NETWORK_IDS["bat"];
 
-	public function initEntity() : void{
-		parent::initEntity();
-		$this->width = Data::WIDTHS[self::NETWORK_ID];
-		$this->height = Data::HEIGHTS[self::NETWORK_ID];
-	}
+	public function __construct(Level $level, CompoundTag $nbt){
+        parent::__construct($level, $nbt);
+        $this->width = Data::WIDTHS[self::NETWORK_ID];
+        $this->height = Data::HEIGHTS[self::NETWORK_ID];
+    }
 
 	public function getSpeed() : float{
 		return $this->speed;

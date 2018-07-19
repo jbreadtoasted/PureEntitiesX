@@ -25,17 +25,18 @@ use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\protocol\AddEntityPacket;
 use revivalpmmp\pureentities\components\IdlingComponent;
 use revivalpmmp\pureentities\data\NBTConst;
+use revivalpmmp\pureentities\entity\animal\FlyingAnimal;
 use revivalpmmp\pureentities\entity\monster\flying\Blaze;
-use revivalpmmp\pureentities\entity\monster\Monster;
 use pocketmine\entity\Creature;
 use pocketmine\entity\Entity;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
-//use pocketmine\event\Timings;
 use pocketmine\level\Level;
 use pocketmine\math\Math;
 use pocketmine\math\Vector3;
 use pocketmine\Player;
+use revivalpmmp\pureentities\entity\monster\FlyingMonster;
+use revivalpmmp\pureentities\entity\monster\MonsterX;
 use revivalpmmp\pureentities\entity\monster\walking\Wolf;
 use revivalpmmp\pureentities\features\IntfCanPanic;
 use revivalpmmp\pureentities\features\IntfTameable;
@@ -101,7 +102,7 @@ abstract class BaseEntity extends Creature{
 		}
 	}
 
-	public abstract function updateMove($tickDiff);
+	public function updateMove($tickDiff){}
 
 	/**
 	 * Should return the experience dropped by the entity when killed
@@ -289,7 +290,7 @@ abstract class BaseEntity extends Creature{
 		$this->motion->x = $motion->x * 0.19;
 		$this->motion->z = $motion->z * 0.19;
 
-		if(($this instanceof FlyingEntity) && !($this instanceof Blaze)){
+		if((($this instanceof FlyingAnimal) or ($this instanceof FlyingMonster)) && !($this instanceof Blaze)){
 			$this->motion->y = $motion->y * 0.19;
 		}else{
 			$this->motion->y = 0.6;
@@ -387,15 +388,15 @@ abstract class BaseEntity extends Creature{
 		$this->setComponents($this->x + $dx, $this->y + $dy, $this->z + $dz);
 		$this->checkChunks();
 
-		$this->checkGroundState($movX, $movY, $movZ, $dx, $dy, $dz);
-		$this->updateFallState($dy, $this->onGround);
+		//$this->checkGroundState($movX, $movY, $movZ, $dx, $dy, $dz);
+		//$this->updateFallState($dy, $this->onGround);
 
 		//Timings::$entityMoveTimer->stopTiming();
 		return;
 	}
 
 	public function targetOption(Creature $creature, float $distance) : bool{
-		return $this instanceof Monster && (!($creature instanceof Player) || ($creature->isSurvival() && $creature->spawned)) && $creature->isAlive() && !$creature->isClosed() && $distance <= 81;
+		return $this instanceof MonsterX && (!($creature instanceof Player) || ($creature->isSurvival() && $creature->spawned)) && $creature->isAlive() && !$creature->isClosed() && $distance <= 81;
 	}
 
 	/**
@@ -525,4 +526,8 @@ abstract class BaseEntity extends Creature{
 	protected function isFollowingPlayer(Creature $creature) : bool{
 		return $this->getBaseTarget() !== null and $this->getBaseTarget() instanceof Player and $this->getBaseTarget()->getId() === $creature->getId();
 	}
+
+    public function checkTarget(bool $checkSkip = true){
+
+    }
 }

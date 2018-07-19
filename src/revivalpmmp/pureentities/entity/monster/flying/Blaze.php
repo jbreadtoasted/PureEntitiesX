@@ -20,38 +20,40 @@
 
 namespace revivalpmmp\pureentities\entity\monster\flying;
 
-use revivalpmmp\pureentities\entity\animal\Animal;
-use revivalpmmp\pureentities\entity\BaseEntity;
-use revivalpmmp\pureentities\entity\monster\FlyingMonster;
-use revivalpmmp\pureentities\entity\projectile\SmallFireball;
 use pocketmine\block\Liquid;
-use pocketmine\block\StoneSlab;
 use pocketmine\block\Stair;
+use pocketmine\block\StoneSlab;
 use pocketmine\entity\Creature;
 use pocketmine\entity\Entity;
-use pocketmine\event\entity\ProjectileLaunchEvent;
 use pocketmine\entity\projectile\ProjectileSource;
+use pocketmine\event\entity\ProjectileLaunchEvent;
 use pocketmine\item\Item;
+use pocketmine\level\Level;
 use pocketmine\level\Location;
 use pocketmine\level\sound\LaunchSound;
 use pocketmine\math\Math;
 use pocketmine\math\Vector2;
 use pocketmine\math\Vector3;
+use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\Player;
 use revivalpmmp\pureentities\data\Data;
+use revivalpmmp\pureentities\entity\animal\AnimalX;
+use revivalpmmp\pureentities\entity\BaseEntity;
+use revivalpmmp\pureentities\entity\monster\FlyingMonster;
+use revivalpmmp\pureentities\entity\projectile\SmallFireball;
 
 class Blaze extends FlyingMonster implements ProjectileSource{
 	const NETWORK_ID = Data::NETWORK_IDS["blaze"];
 
-	public function initEntity() : void{
-		parent::initEntity();
-		$this->width = Data::WIDTHS[self::NETWORK_ID];
-		$this->height = Data::HEIGHTS[self::NETWORK_ID];
-		$this->gravity = 0.04;
+    public function __construct(Level $level, CompoundTag $nbt){
+        $this->width = Data::WIDTHS[self::NETWORK_ID];
+        $this->height = Data::HEIGHTS[self::NETWORK_ID];
+        $this->gravity = 0.04;
 
-		$this->fireProof = true;
-		$this->setDamage([0, 0, 0, 0]);
-	}
+        $this->fireProof = true;
+        $this->setDamage([0, 0, 0, 0]);
+        parent::__construct($level, $nbt);
+    }
 
 	public function getName() : string{
 		return "Blaze";
@@ -67,7 +69,7 @@ class Blaze extends FlyingMonster implements ProjectileSource{
 			if(!($target instanceof Creature) or !$this->targetOption($target, $this->distanceSquared($target))){
 				$near = PHP_INT_MAX;
 				foreach($this->getLevel()->getEntities() as $creature){
-					if($creature === $this || !($creature instanceof Creature) || $creature instanceof Animal){
+					if($creature === $this || !($creature instanceof Creature) || $creature instanceof AnimalX){
 						continue;
 					}
 

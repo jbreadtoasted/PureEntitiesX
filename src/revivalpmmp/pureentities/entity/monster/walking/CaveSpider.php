@@ -22,6 +22,8 @@ namespace revivalpmmp\pureentities\entity\monster\walking;
 
 use pocketmine\entity\Effect;
 use pocketmine\entity\EffectInstance;
+use pocketmine\level\Level;
+use pocketmine\nbt\tag\CompoundTag;
 use revivalpmmp\pureentities\entity\monster\WalkingMonster;
 use pocketmine\entity\Entity;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
@@ -34,13 +36,13 @@ class CaveSpider extends WalkingMonster{
 	const NETWORK_ID = Data::NETWORK_IDS["cave_spider"];
 
 
-	public function initEntity() : void{
-		parent::initEntity();
-		$this->width = Data::WIDTHS[self::NETWORK_ID];
-		$this->height = Data::HEIGHTS[self::NETWORK_ID];
-		$this->speed = 1.3;
-		$this->setDamage([0, 2, 3, 3]);
-	}
+    public function __construct(Level $level, CompoundTag $nbt){
+        $this->width = Data::WIDTHS[self::NETWORK_ID];
+        $this->height = Data::HEIGHTS[self::NETWORK_ID];
+        $this->speed = 1.3;
+        $this->setDamage([0, 2, 3, 3]);
+        parent::__construct($level, $nbt);
+    }
 
 	public function getName() : string{
 		return "CaveSpider";

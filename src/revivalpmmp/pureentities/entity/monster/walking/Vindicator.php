@@ -20,18 +20,15 @@
 
 namespace revivalpmmp\pureentities\entity\monster\walking;
 
-use pocketmine\item\ItemIds;
-use revivalpmmp\pureentities\components\BreedingComponent;
-use revivalpmmp\pureentities\components\MobEquipment;
-use revivalpmmp\pureentities\entity\monster\Monster;
-use revivalpmmp\pureentities\entity\monster\WalkingMonster;
 use pocketmine\entity\Entity;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
-// use pocketmine\event\Timings;
-use pocketmine\item\Item;
 use pocketmine\level\Level;
+use pocketmine\nbt\tag\CompoundTag;
+use revivalpmmp\pureentities\components\BreedingComponent;
+use revivalpmmp\pureentities\components\MobEquipment;
 use revivalpmmp\pureentities\data\Data;
+use revivalpmmp\pureentities\entity\monster\WalkingMonster;
 use revivalpmmp\pureentities\features\IntfCanBreed;
 use revivalpmmp\pureentities\features\IntfCanEquip;
 use revivalpmmp\pureentities\PureEntities;
@@ -39,7 +36,7 @@ use revivalpmmp\pureentities\traits\Breedable;
 use revivalpmmp\pureentities\traits\Feedable;
 use revivalpmmp\pureentities\utils\MobDamageCalculator;
 
-class Vindicator extends WalkingMonster implements IntfCanEquip, IntfCanBreed, Monster{
+class Vindicator extends WalkingMonster implements IntfCanEquip, IntfCanBreed{
 
 	// Base framework created from Zombie
 	// TODO Create Vindicator specific methods
@@ -52,21 +49,23 @@ class Vindicator extends WalkingMonster implements IntfCanEquip, IntfCanBreed, M
 	private $mobEquipment;
 	private $pickUpLoot = [];
 
-	public function initEntity() : void{
-		parent::initEntity();
-		$this->width = Data::WIDTHS[self::NETWORK_ID];
-		$this->height = Data::HEIGHTS[self::NETWORK_ID];
-		$this->speed = 1.1;
-		$this->setDamage([0, 2, 3, 4]);
+    public function __construct(Level $level, CompoundTag $nbt){
+        $this->width = Data::WIDTHS[self::NETWORK_ID];
+        $this->height = Data::HEIGHTS[self::NETWORK_ID];
+        $this->speed = 1.1;
+        $this->setDamage([0, 2, 3, 4]);
 
-		$this->mobEquipment = new MobEquipment($this);
-		$this->mobEquipment->init();
+        $this->mobEquipment = new MobEquipment($this);
+        $this->mobEquipment->init();
 
-		$this->feedableItems = [];
+        $this->feedableItems = [];
 
-		$this->breedableClass = new BreedingComponent($this);
-		$this->breedableClass->init();
-	}
+        $this->breedableClass = new BreedingComponent($this);
+        $this->breedableClass->init();
+        parent::__construct($level, $nbt);
+    }
+
+
 
 	/**
 	 * Returns the appropriate NetworkID associated with this entity

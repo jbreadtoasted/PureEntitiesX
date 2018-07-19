@@ -20,18 +20,14 @@
 
 namespace revivalpmmp\pureentities\entity\monster\walking;
 
-use revivalpmmp\pureentities\entity\monster\Monster;
-use revivalpmmp\pureentities\entity\monster\WalkingMonster;
 use pocketmine\entity\Entity;
-use pocketmine\event\entity\EntityDamageByEntityEvent;
-use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\item\Item;
-use pocketmine\Player;
+use pocketmine\level\Level;
+use pocketmine\nbt\tag\CompoundTag;
 use revivalpmmp\pureentities\data\Data;
-use revivalpmmp\pureentities\PureEntities;
-use revivalpmmp\pureentities\utils\MobDamageCalculator;
+use revivalpmmp\pureentities\entity\monster\WalkingMonster;
 
-class Shulker extends WalkingMonster implements Monster{
+class Shulker extends WalkingMonster{
 
 	// Base created from Spider
 	// TODO Lots!  Fix shell color
@@ -43,14 +39,14 @@ class Shulker extends WalkingMonster implements Monster{
 
 	const NETWORK_ID = Data::NETWORK_IDS["shulker"];
 
-	public function initEntity() : void{
-		parent::initEntity();
-		$this->width = Data::WIDTHS[self::NETWORK_ID];
-		$this->height = Data::HEIGHTS[self::NETWORK_ID];
-		$this->speed = 0;
+    public function __construct(Level $level, CompoundTag $nbt){
+        $this->width = Data::WIDTHS[self::NETWORK_ID];
+        $this->height = Data::HEIGHTS[self::NETWORK_ID];
+        $this->speed = 0;
 
-		$this->setDamage([0, 2, 2, 3]);
-	}
+        $this->setDamage([0, 2, 2, 3]);
+        parent::__construct($level, $nbt);
+    }
 
 	public function getName() : string{
 		return "Shulker";

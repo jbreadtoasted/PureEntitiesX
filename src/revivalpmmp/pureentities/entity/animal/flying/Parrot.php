@@ -21,6 +21,8 @@ namespace revivalpmmp\pureentities\entity\animal\flying;
 
 
 use pocketmine\entity\Creature;
+use pocketmine\level\Level;
+use pocketmine\nbt\tag\CompoundTag;
 use revivalpmmp\pureentities\data\NBTConst;
 use revivalpmmp\pureentities\entity\animal\FlyingAnimal;
 use pocketmine\item\Item;
@@ -29,26 +31,31 @@ use revivalpmmp\pureentities\features\IntfTameable;
 use revivalpmmp\pureentities\PluginConfiguration;
 use revivalpmmp\pureentities\PureEntities;
 use revivalpmmp\pureentities\data\Data;
+use revivalpmmp\pureentities\traits\Interactive;
 use revivalpmmp\pureentities\traits\Tameable;
 
 class Parrot extends FlyingAnimal implements IntfTameable, IntfCanInteract{
-	use Tameable;
+	use Tameable, Interactive;
 
 	const NETWORK_ID = Data::NETWORK_IDS["parrot"];
 	private $birdType; // 0 = red, 1 = blue, 2 = green, 3 = cyan, 4 = silver
 
-	public function initEntity() : void{
+    public function __construct(Level $level, CompoundTag $nbt){
+        $this->width = Data::WIDTHS[self::NETWORK_ID];
+        $this->height = Data::HEIGHTS[self::NETWORK_ID];
+        $this->fireProof = false;
+        $this->tameFoods = array(
+            Item::SEEDS,
+            Item::BEETROOT_SEEDS,
+            Item::MELON_SEEDS,
+            Item::PUMPKIN_SEEDS,
+            Item::WHEAT_SEEDS
+        );
+        parent::__construct($level, $nbt);
+    }
+
+    public function initEntity() : void{
 		parent::initEntity();
-		$this->width = Data::WIDTHS[self::NETWORK_ID];
-		$this->height = Data::HEIGHTS[self::NETWORK_ID];
-		$this->fireProof = false;
-		$this->tameFoods = array(
-			Item::SEEDS,
-			Item::BEETROOT_SEEDS,
-			Item::MELON_SEEDS,
-			Item::PUMPKIN_SEEDS,
-			Item::WHEAT_SEEDS
-		);
 		if(empty($this->birdType)){
 			$this->setBirdType($this->getRandomBirdType());
 		}

@@ -22,10 +22,9 @@ namespace revivalpmmp\pureentities\entity\monster\swimming;
 
 use pocketmine\entity\Entity;
 use revivalpmmp\pureentities\data\Data;
-use revivalpmmp\pureentities\entity\monster\Monster;
 use revivalpmmp\pureentities\entity\monster\SwimmingMonster;
 
-class ElderGuardian extends SwimmingMonster implements Monster{
+class ElderGuardian extends SwimmingMonster{
 
 	// TODO: Implement ElderGuardian Specific Methods
 

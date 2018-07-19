@@ -18,39 +18,41 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-namespace revivalpmmp\pureentities\entity\monster\jumping;
+namespace revivalpmmp\pureentities\entity\monster\walking;
 
 use pocketmine\item\Item;
+use pocketmine\level\Level;
+use pocketmine\nbt\tag\CompoundTag;
 use revivalpmmp\pureentities\data\NBTConst;
-use revivalpmmp\pureentities\entity\monster\JumpingMonster;
 use pocketmine\entity\Entity;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use revivalpmmp\pureentities\data\Data;
+use revivalpmmp\pureentities\entity\monster\WalkingMonster;
 use revivalpmmp\pureentities\PluginConfiguration;
 use revivalpmmp\pureentities\utils\MobDamageCalculator;
 
-class MagmaCube extends JumpingMonster{
+class MagmaCube extends WalkingMonster{
 	const NETWORK_ID = Data::NETWORK_IDS["magma_cube"];
 
 	private $cubeSize = -1; // 0 = Tiny, 1 = Small, 2 = Big
 	private $cubeDimensions = array(0.51, 1.02, 2.04);
 
 
-	public function initEntity() : void{
-		parent::initEntity();
-		if($this->cubeSize == -1){
-			$this->cubeSize = self::getRandomCubeSize();
-			$this->saveNBT();
-		}
+    public function __construct(Level $level, CompoundTag $nbt){
+        if($this->cubeSize == -1){
+            $this->cubeSize = self::getRandomCubeSize();
+            $this->saveNBT();
+        }
 
-		$this->width = $this->cubeDimensions[$this->cubeSize];
-		$this->height = $this->cubeDimensions[$this->cubeSize];
-		$this->speed = 0.8;
+        $this->width = $this->cubeDimensions[$this->cubeSize];
+        $this->height = $this->cubeDimensions[$this->cubeSize];
+        $this->speed = 0.8;
 
-		$this->fireProof = true;
-		$this->setDamage([0, 3, 4, 6]);
-	}
+        $this->fireProof = true;
+        $this->setDamage([0, 3, 4, 6]);
+        parent::__construct($level, $nbt);
+    }
 
 	public function saveNBT() : void{
 		if(PluginConfiguration::getInstance()->getEnableNBT()){

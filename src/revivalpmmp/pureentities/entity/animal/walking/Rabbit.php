@@ -21,6 +21,8 @@
 
 namespace revivalpmmp\pureentities\entity\animal\walking;
 
+use pocketmine\level\Level;
+use pocketmine\nbt\tag\CompoundTag;
 use revivalpmmp\pureentities\components\BreedingComponent;
 use revivalpmmp\pureentities\data\Data;
 use revivalpmmp\pureentities\entity\animal\WalkingAnimal;
@@ -32,24 +34,29 @@ use revivalpmmp\pureentities\PluginConfiguration;
 use revivalpmmp\pureentities\traits\Breedable;
 use revivalpmmp\pureentities\traits\CanPanic;
 use revivalpmmp\pureentities\traits\Feedable;
+use revivalpmmp\pureentities\traits\Interactive;
 
 class Rabbit extends WalkingAnimal implements IntfCanBreed, IntfCanInteract, IntfCanPanic{
 
-	use Breedable, CanPanic, Feedable;
+	use Breedable, CanPanic, Feedable, Interactive;
 	const NETWORK_ID = Data::NETWORK_IDS["rabbit"];
 
-	public function initEntity() : void{
+	public function __construct(Level $level, CompoundTag $nbt){
+        $this->width = Data::WIDTHS[self::NETWORK_ID];
+        $this->height = Data::HEIGHTS[self::NETWORK_ID];
+        $this->speed = 2;
+        $this->setNormalSpeed(1.1);
+        $this->setPanicSpeed(1.3);
+        $this->feedableItems = array(
+            Item::CARROT,
+            Item::GOLDEN_CARROT,
+            Item::DANDELION);
+        $this->breedableClass = new BreedingComponent($this);
+	    parent::__construct($level, $nbt);
+    }
+
+    public function initEntity() : void{
 		parent::initEntity();
-		$this->width = Data::WIDTHS[self::NETWORK_ID];
-		$this->height = Data::HEIGHTS[self::NETWORK_ID];
-		$this->speed = 2;
-		$this->setNormalSpeed(1.1);
-		$this->setPanicSpeed(1.3);
-		$this->feedableItems = array(
-			Item::CARROT,
-			Item::GOLDEN_CARROT,
-			Item::DANDELION);
-		$this->breedableClass = new BreedingComponent($this);
 		$this->breedableClass->init();
 	}
 

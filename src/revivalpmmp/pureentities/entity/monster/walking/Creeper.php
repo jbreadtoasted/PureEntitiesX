@@ -21,6 +21,8 @@
 namespace revivalpmmp\pureentities\entity\monster\walking;
 
 use pocketmine\event\entity\ExplosionPrimeEvent;
+use pocketmine\level\Level;
+use pocketmine\nbt\tag\CompoundTag;
 use revivalpmmp\pureentities\data\NBTConst;
 use revivalpmmp\pureentities\entity\monster\WalkingMonster;
 use pocketmine\entity\Creature;
@@ -42,12 +44,12 @@ class Creeper extends WalkingMonster implements Explosive{
 
 	private $powered = 0;
 
-	public function initEntity() : void{
-		parent::initEntity();
+    public function __construct(Level $level, CompoundTag $nbt){
 		$this->width = Data::WIDTHS[self::NETWORK_ID];
 		$this->height = Data::HEIGHTS[self::NETWORK_ID];
 		$this->speed = 0.9;
 		$this->explodeBlocks = (PureEntities::getInstance()->getConfig()->getNested("creeper.block-breaking-explosion", 0) == 0 ? false : true);
+		parent::__construct($level, $nbt);
 	}
 
 	public function isPowered(){

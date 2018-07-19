@@ -20,6 +20,8 @@
 
 namespace revivalpmmp\pureentities\entity\monster\walking;
 
+use pocketmine\level\Level;
+use pocketmine\nbt\tag\CompoundTag;
 use revivalpmmp\pureentities\entity\monster\WalkingMonster;
 use pocketmine\entity\Entity;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
@@ -29,24 +31,25 @@ use pocketmine\math\Vector3;
 use pocketmine\entity\Creature;
 use pocketmine\Player;
 use revivalpmmp\pureentities\data\Data;
+use revivalpmmp\pureentities\traits\Passive;
 use revivalpmmp\pureentities\utils\MobDamageCalculator;
 
 class IronGolem extends WalkingMonster{
 	const NETWORK_ID = Data::NETWORK_IDS["iron_golem"];
+	use Passive;
 
 
-	public function initEntity() : void{
-		parent::initEntity();
-		$this->width = Data::WIDTHS[self::NETWORK_ID];
-		$this->height = Data::HEIGHTS[self::NETWORK_ID];
-		$this->speed = 0.8;
-		$this->setMaxHealth(20);
-		$this->setHealth(20);
+    public function __construct(Level $level, CompoundTag $nbt){
+        $this->width = Data::WIDTHS[self::NETWORK_ID];
+        $this->height = Data::HEIGHTS[self::NETWORK_ID];
+        $this->speed = 0.8;
+        $this->setMaxHealth(20);
+        $this->setHealth(20);
 
-		$this->setFriendly(true);
-		$this->setDamage([0, 21, 21, 21]);
-		$this->setMinDamage([0, 7, 7, 7]);
-	}
+        $this->setDamage([0, 21, 21, 21]);
+        $this->setMinDamage([0, 7, 7, 7]);
+        parent::__construct($level, $nbt);
+    }
 
 	public function getName() : string{
 		return "IronGolem";

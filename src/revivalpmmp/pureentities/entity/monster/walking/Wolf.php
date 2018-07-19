@@ -20,31 +20,33 @@
 
 namespace revivalpmmp\pureentities\entity\monster\walking;
 
+use pocketmine\entity\Entity;
+use pocketmine\event\entity\EntityDamageByEntityEvent;
+use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\item\Item;
 use pocketmine\Player;
 use revivalpmmp\pureentities\components\BreedingComponent;
 use revivalpmmp\pureentities\data\Color;
+use revivalpmmp\pureentities\data\Data;
 use revivalpmmp\pureentities\data\NBTConst;
-use revivalpmmp\pureentities\entity\animal\jumping\Rabbit;
+use revivalpmmp\pureentities\entity\animal\walking\Rabbit;
 use revivalpmmp\pureentities\entity\animal\walking\Sheep;
-use revivalpmmp\pureentities\entity\monster\Monster;
+use revivalpmmp\pureentities\entity\monster\MonsterX;
 use revivalpmmp\pureentities\entity\monster\WalkingMonster;
-use revivalpmmp\pureentities\traits\Feedable;
-use revivalpmmp\pureentities\traits\Tameable;
-use revivalpmmp\pureentities\traits\Breedable;
-use pocketmine\entity\Entity;
-use pocketmine\event\entity\EntityDamageEvent;
-use pocketmine\event\entity\EntityDamageByEntityEvent;
 use revivalpmmp\pureentities\features\IntfCanBreed;
 use revivalpmmp\pureentities\features\IntfCanInteract;
 use revivalpmmp\pureentities\features\IntfTameable;
 use revivalpmmp\pureentities\PluginConfiguration;
 use revivalpmmp\pureentities\PureEntities;
-use revivalpmmp\pureentities\data\Data;
+use revivalpmmp\pureentities\traits\Breedable;
+use revivalpmmp\pureentities\traits\Feedable;
+use revivalpmmp\pureentities\traits\Interactive;
+use revivalpmmp\pureentities\traits\Passive;
+use revivalpmmp\pureentities\traits\Tameable;
 use revivalpmmp\pureentities\utils\MobDamageCalculator;
 
 class Wolf extends WalkingMonster implements IntfTameable, IntfCanBreed, IntfCanInteract{
-	use Breedable, Feedable, Tameable;
+	use Breedable, Feedable, Interactive, Passive, Tameable;
 	const NETWORK_ID = Data::NETWORK_IDS["wolf"];
 
 	/**
@@ -66,23 +68,23 @@ class Wolf extends WalkingMonster implements IntfTameable, IntfCanBreed, IntfCan
 
 	private $collarColor = Color::RED;
 
-	public function initEntity() : void{
-		parent::initEntity();
-		$this->width = Data::WIDTHS[self::NETWORK_ID];
-		$this->height = Data::HEIGHTS[self::NETWORK_ID];
-		$this->speed = 1.2;
+    public function __construct(Level $level, CompoundTag $nbt){
+        $this->width = Data::WIDTHS[self::NETWORK_ID];
+        $this->height = Data::HEIGHTS[self::NETWORK_ID];
+        $this->speed = 1.2;
 
-		$this->fireProof = false;
-		$this->setDamage([0, 3, 4, 6]);
+        $this->fireProof = false;
+        $this->setDamage([0, 3, 4, 6]);
 
 
-		$this->breedableClass = new BreedingComponent($this);
-		$this->breedableClass->init();
+        $this->breedableClass = new BreedingComponent($this);
+        $this->breedableClass->init();
+        parent::__construct($level, $nbt);
 
-		$this->tameFoods = array(
+        $this->tameFoods = array(
 			Item::BONE
 		);
-		$this->feedableItems = array(
+        $this->feedableItems = array(
 			Item::RAW_BEEF,
 			Item::RAW_CHICKEN,
 			Item::RAW_MUTTON,
@@ -94,20 +96,20 @@ class Wolf extends WalkingMonster implements IntfTameable, IntfCanBreed, IntfCan
 			Item::COOKED_PORKCHOP,
 			Item::COOKED_RABBIT,
 		);
-		$this->setAngry($this->isAngry() ? $this->angryValue : 0, true);
-		$this->setTamed($this->isTamed());
-		if($this->isTamed()){
-			$this->mapOwner();
-			$this->setCollarColor($this->collarColor);
-			if($this->owner === null){
-				PureEntities::logOutput("Wolf($this): is tamed but player not online. Cannot set tamed owner. Will be set when player logs in ..", PureEntities::NORM);
-			}
-		}
-		$this->breedableClass->init();
+        $this->setAngry($this->isAngry() ? $this->angryValue : 0, true);
+        $this->setTamed($this->isTamed());
+        if($this->isTamed()){
+            $this->mapOwner();
+            $this->setCollarColor($this->collarColor);
+            if($this->owner === null){
+                PureEntities::logOutput("Wolf($this): is tamed but player not online. Cannot set tamed owner. Will be set when player logs in ..", PureEntities::NORM);
+            }
+        }
+        $this->breedableClass->init();
 
-		$this->teleportDistance = PluginConfiguration::getInstance()->getTamedTeleportBlocks();
-		$this->followDistance = PluginConfiguration::getInstance()->getTamedPlayerMaxDistance();
-	}
+        $this->teleportDistance = PluginConfiguration::getInstance()->getTamedTeleportBlocks();
+        $this->followDistance = PluginConfiguration::getInstance()->getTamedPlayerMaxDistance();
+    }
 
 	/**
 	 * Returns the appropriate NetworkID associated with this entity
@@ -141,7 +143,7 @@ class Wolf extends WalkingMonster implements IntfTameable, IntfCanBreed, IntfCan
 	 */
 	public function checkTarget(bool $checkSkip = true){
 		if(($checkSkip and $this->isCheckTargetAllowedBySkip()) or !$checkSkip){
-			if(!$this->isTamed() and !$this->getBaseTarget() instanceof Monster){
+			if(!$this->isTamed() and !$this->getBaseTarget() instanceof MonsterX){
 				// is there any entity around that is attackable (skeletons, rabbits, sheep)
 				foreach($this->getLevel()->getNearbyEntities($this->boundingBox->expandedCopy(10, 10, 10), $this) as $entity){
 					if($entity instanceof Skeleton or $entity instanceof Rabbit or $entity instanceof Sheep and
@@ -250,7 +252,7 @@ class Wolf extends WalkingMonster implements IntfTameable, IntfCanBreed, IntfCan
 				// a tamed entity gets angry when attacked by another player (which is not owner)
 				// or by a monster when tamed
 				$attackedBy = $source->getEntity();
-				if($attackedBy instanceof Monster or ($attackedBy instanceof Player and
+				if($attackedBy instanceof MonsterX or ($attackedBy instanceof Player and
 						strcasecmp($attackedBy->getName(), $this->getOwner()->getName()) !== 0)
 				){
 					$this->setAngry(1000);

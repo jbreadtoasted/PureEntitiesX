@@ -20,6 +20,8 @@
 
 namespace revivalpmmp\pureentities\entity\animal\walking;
 
+use pocketmine\level\Level;
+use pocketmine\nbt\tag\CompoundTag;
 use revivalpmmp\pureentities\components\BreedingComponent;
 use revivalpmmp\pureentities\data\NBTConst;
 use revivalpmmp\pureentities\entity\animal\WalkingAnimal;
@@ -31,24 +33,28 @@ use revivalpmmp\pureentities\features\IntfShearable;
 use revivalpmmp\pureentities\PluginConfiguration;
 use revivalpmmp\pureentities\traits\Breedable;
 use revivalpmmp\pureentities\traits\Feedable;
+use revivalpmmp\pureentities\traits\Interactive;
 use revivalpmmp\pureentities\traits\Shearable;
 
 class Mooshroom extends WalkingAnimal implements IntfCanBreed, IntfCanInteract, IntfShearable{
-	use Shearable, Breedable, Feedable;
+	use Shearable, Breedable, Feedable, Interactive;
 	const NETWORK_ID = Data::NETWORK_IDS["mooshroom"];
 
-	public function initEntity() : void{
-		parent::initEntity();
-		$this->width = Data::WIDTHS[self::NETWORK_ID];
-		$this->height = Data::HEIGHTS[self::NETWORK_ID];
-		$this->feedableItems = array(Item::WHEAT);
-		$this->breedableClass = new BreedingComponent($this);
-		$this->breedableClass->init();
-		$this->maxShearDrops = 5;
-		$this->shearItems = Item::RED_MUSHROOM;
-	}
+    public function __construct(Level $level, CompoundTag $nbt){
+        $this->width = Data::WIDTHS[self::NETWORK_ID];
+        $this->height = Data::HEIGHTS[self::NETWORK_ID];
+        $this->feedableItems = array(Item::WHEAT);
+        $this->breedableClass = new BreedingComponent($this);
+        $this->maxShearDrops = 5;
+        $this->shearItems = Item::RED_MUSHROOM;
+        parent::__construct($level, $nbt);
+    }
+    public function initEntity() : void{
+        parent::initEntity();
+        $this->breedableClass->init();
+    }
 
-	public function getName() : string{
+    public function getName() : string{
 		return "Mooshroom";
 	}
 

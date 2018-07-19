@@ -22,6 +22,8 @@ namespace revivalpmmp\pureentities\entity\monster\walking;
 
 use pocketmine\item\ItemFactory;
 use pocketmine\item\ItemIds;
+use pocketmine\level\Level;
+use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\network\mcpe\protocol\MobEquipmentPacket;
 use revivalpmmp\pureentities\entity\monster\WalkingMonster;
 use pocketmine\entity\Entity;
@@ -35,13 +37,13 @@ use revivalpmmp\pureentities\utils\MobDamageCalculator;
 class WitherSkeleton extends WalkingMonster{
 	const NETWORK_ID = Data::NETWORK_IDS["wither_skeleton"];
 
-	public function initEntity() : void{
-		parent::initEntity();
-		$this->width = Data::WIDTHS[self::NETWORK_ID];
-		$this->height = Data::HEIGHTS[self::NETWORK_ID];
+    public function __construct(Level $level, CompoundTag $nbt){
+        $this->width = Data::WIDTHS[self::NETWORK_ID];
+        $this->height = Data::HEIGHTS[self::NETWORK_ID];
 
-		$this->setDamage([0, 3, 4, 6]);
-	}
+        $this->setDamage([0, 3, 4, 6]);
+        parent::__construct($level, $nbt);
+    }
 
 	public function getName() : string{
 		return "Wither Skeleton";

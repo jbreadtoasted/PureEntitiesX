@@ -20,6 +20,8 @@
 
 namespace revivalpmmp\pureentities\entity\animal\walking;
 
+use pocketmine\level\Level;
+use pocketmine\nbt\tag\CompoundTag;
 use revivalpmmp\pureentities\components\BreedingComponent;
 use revivalpmmp\pureentities\entity\animal\WalkingAnimal;
 use pocketmine\entity\Rideable;
@@ -32,25 +34,30 @@ use revivalpmmp\pureentities\PluginConfiguration;
 use revivalpmmp\pureentities\traits\Breedable;
 use revivalpmmp\pureentities\traits\CanPanic;
 use revivalpmmp\pureentities\traits\Feedable;
+use revivalpmmp\pureentities\traits\Interactive;
 
 class Pig extends WalkingAnimal implements Rideable, IntfCanBreed, IntfCanInteract, IntfCanPanic{
 
-	use Breedable, CanPanic, Feedable;
+	use Breedable, CanPanic, Feedable, Interactive;
 	const NETWORK_ID = Data::NETWORK_IDS["pig"];
 
 
-	public function initEntity() : void{
-		parent::initEntity();
-		$this->width = Data::WIDTHS[self::NETWORK_ID];
-		$this->height = Data::HEIGHTS[self::NETWORK_ID];
-		$this->feedableItems = array(
+    public function __construct(Level $level, CompoundTag $nbt){
+        $this->width = Data::WIDTHS[self::NETWORK_ID];
+        $this->height = Data::HEIGHTS[self::NETWORK_ID];
+        $this->feedableItems = array(
 			Item::CARROT,
 			Item::BEETROOT);
-		$this->breedableClass = new BreedingComponent($this);
-		$this->breedableClass->init();
-	}
+        $this->breedableClass = new BreedingComponent($this);
+        parent::__construct($level, $nbt);
+    }
 
-	public function getName() : string{
+    public function initEntity() : void{
+        parent::initEntity();
+        $this->breedableClass->init();
+    }
+
+    public function getName() : string{
 		return "Pig";
 	}
 

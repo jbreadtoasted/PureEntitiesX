@@ -20,41 +20,44 @@
 
 namespace revivalpmmp\pureentities\entity\monster\walking;
 
-use pocketmine\entity\projectile\Projectile;
-use pocketmine\item\Item;
-use pocketmine\item\ItemIds;
-use revivalpmmp\pureentities\data\NBTConst;
-use revivalpmmp\pureentities\entity\monster\WalkingMonster;
 use pocketmine\entity\Entity;
+use pocketmine\entity\projectile\Projectile;
 use pocketmine\entity\projectile\ProjectileSource;
 use pocketmine\event\entity\ProjectileLaunchEvent;
+use pocketmine\item\Item;
+use pocketmine\item\ItemIds;
+use pocketmine\level\Level;
 use pocketmine\level\sound\LaunchSound;
 use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\nbt\tag\DoubleTag;
-use pocketmine\nbt\tag\ListTag;
 use pocketmine\nbt\tag\FloatTag;
+use pocketmine\nbt\tag\ListTag;
 use pocketmine\Player;
+use revivalpmmp\pureentities\data\Data;
+use revivalpmmp\pureentities\data\NBTConst;
+use revivalpmmp\pureentities\entity\monster\WalkingMonster;
 use revivalpmmp\pureentities\features\IntfCanInteract;
 use revivalpmmp\pureentities\features\IntfShearable;
 use revivalpmmp\pureentities\InteractionHelper;
 use revivalpmmp\pureentities\PluginConfiguration;
 use revivalpmmp\pureentities\PureEntities;
-use revivalpmmp\pureentities\data\Data;
+use revivalpmmp\pureentities\traits\Interactive;
+use revivalpmmp\pureentities\traits\Passive;
 use revivalpmmp\pureentities\traits\Shearable;
 
 class SnowGolem extends WalkingMonster implements ProjectileSource, IntfCanInteract, IntfShearable{
-	use Shearable;
+	use Interactive, Passive, Shearable;
 	const NETWORK_ID = Data::NETWORK_IDS["snow_golem"];
 
-	public function initEntity() : void{
-		parent::initEntity();
-		$this->width = Data::WIDTHS[self::NETWORK_ID];
-		$this->height = Data::HEIGHTS[self::NETWORK_ID];
+    public function __construct(Level $level, CompoundTag $nbt){
+        $this->width = Data::WIDTHS[self::NETWORK_ID];
+        $this->height = Data::HEIGHTS[self::NETWORK_ID];
 
-		$this->setFriendly(true);
-		$this->setSheared($this->isSheared()); // set data from NBT
-		$this->maxShearDrops = 0;
-	}
+        $this->setFriendly(true);
+        $this->setSheared($this->isSheared()); // set data from NBT
+        $this->maxShearDrops = 0;
+        parent::__construct($level, $nbt);
+    }
 
 	public function getName() : string{
 		return "SnowGolem";
@@ -130,12 +133,11 @@ class SnowGolem extends WalkingMonster implements ProjectileSource, IntfCanInter
 	 */
 	public function showButton(Player $player){
 		if($player->getInventory() != null){ // sometimes, we get null on getInventory?! F**k
-			if($player->getInventory()->getItemInHand()->getId() === ItemIds::SHEARS && !$this->isSheared()){
-				InteractionHelper::displayButtonText(PureEntities::BUTTON_TEXT_SHEAR, $player);
-				return;
-			}
-		}
-		parent::showButton($player);
+            if($player->getInventory()->getItemInHand()->getId() === ItemIds::SHEARS && !$this->isSheared()){
+                InteractionHelper::displayButtonText(PureEntities::BUTTON_TEXT_SHEAR, $player);
+                return;
+            }
+        }
 	}
 
 	/**

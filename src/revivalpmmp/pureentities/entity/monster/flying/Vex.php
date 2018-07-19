@@ -20,10 +20,11 @@
 
 namespace revivalpmmp\pureentities\entity\monster\flying;
 
-use revivalpmmp\pureentities\entity\animal\Animal;
+use pocketmine\level\Level;
+use pocketmine\nbt\tag\CompoundTag;
+use revivalpmmp\pureentities\entity\animal\AnimalX;
 use revivalpmmp\pureentities\entity\BaseEntity;
 use revivalpmmp\pureentities\entity\monster\FlyingMonster;
-use revivalpmmp\pureentities\entity\monster\Monster;
 use pocketmine\block\Liquid;
 use pocketmine\block\StoneSlab;
 use pocketmine\block\Stair;
@@ -35,20 +36,20 @@ use pocketmine\math\Vector3;
 use pocketmine\Player;
 use revivalpmmp\pureentities\data\Data;
 
-class Vex extends FlyingMonster implements Monster{
+class Vex extends FlyingMonster{
 
 	// Base created from Blaze
 	// TODO create methods specific to Vexes
 	const NETWORK_ID = Data::NETWORK_IDS["vex"];
 
-	public function initEntity() : void{
-		parent::initEntity();
-		$this->width = Data::WIDTHS[self::NETWORK_ID];
-		$this->height = Data::HEIGHTS[self::NETWORK_ID];
-		$this->gravity = 0.04;
+    public function __construct(Level $level, CompoundTag $nbt){
+        $this->width = Data::WIDTHS[self::NETWORK_ID];
+        $this->height = Data::HEIGHTS[self::NETWORK_ID];
+        $this->gravity = 0.04;
 
-		$this->setDamage([0, 0, 0, 0]);
-	}
+        $this->setDamage([0, 0, 0, 0]);
+        parent::__construct($level, $nbt);
+    }
 
 	public function getName() : string{
 		return "Vex";
@@ -64,7 +65,7 @@ class Vex extends FlyingMonster implements Monster{
 			if(!($target instanceof Creature) or !$this->targetOption($target, $this->distanceSquared($target))){
 				$near = PHP_INT_MAX;
 				foreach($this->getLevel()->getEntities() as $creature){
-					if($creature === $this || !($creature instanceof Creature) || $creature instanceof Animal){
+					if($creature === $this || !($creature instanceof Creature) || $creature instanceof AnimalX){
 						continue;
 					}
 

@@ -20,30 +20,30 @@
 
 namespace revivalpmmp\pureentities\entity\monster\walking;
 
-use revivalpmmp\pureentities\entity\monster\Monster;
-use revivalpmmp\pureentities\entity\monster\WalkingMonster;
 use pocketmine\entity\Entity;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
 use pocketmine\event\entity\EntityDamageEvent;
-// use pocketmine\event\Timings;
 use pocketmine\level\Level;
+use pocketmine\nbt\tag\CompoundTag;
 use revivalpmmp\pureentities\data\Data;
+use revivalpmmp\pureentities\entity\monster\WalkingMonster;
 use revivalpmmp\pureentities\utils\MobDamageCalculator;
 
-class Evoker extends WalkingMonster implements Monster{
+
+class Evoker extends WalkingMonster{
 
 	// Base Framework from Zombie Villager
 	// TODO Update Specific Methods for Evoker
 
 	const NETWORK_ID = Data::NETWORK_IDS["evoker"];
 
-	public function initEntity() : void{
-		parent::initEntity();
+    public function __construct(Level $level, CompoundTag $nbt){
 		$this->width = Data::WIDTHS[self::NETWORK_ID];
 		$this->height = Data::HEIGHTS[self::NETWORK_ID];
 		$this->speed = 1.1;
 
 		$this->setDamage([0, 3, 4, 6]);
+		parent::__construct($level, $nbt);
 	}
 
 	public function getName() : string{
